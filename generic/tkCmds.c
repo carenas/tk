@@ -1036,6 +1036,10 @@ Tk_TkwaitObjCmd(
 	if (window == NULL) {
 	    return TCL_ERROR;
 	}
+	if (GetWindowVisibility((TkWindow *)window)) {
+	    code = TCL_OK;
+	    break;
+	}
 	Tk_CreateEventHandler(window,
 		VisibilityChangeMask|StructureNotifyMask,
 		WaitVisibilityProc, &done);
