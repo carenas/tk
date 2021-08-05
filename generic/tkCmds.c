@@ -25,7 +25,7 @@
 /*
  * Forward declarations for functions defined later in this file:
  */
-
+static int		GetWindowVisibility(TkWindow *winPtr);
 static TkWindow *	GetTopHierarchy(Tk_Window tkwin);
 static char *		WaitVariableProc(ClientData clientData,
 			    Tcl_Interp *interp, const char *name1,
@@ -1497,18 +1497,7 @@ Tk_WinfoObjCmd(
 	}
 	break;
     case WIN_VIEWABLE: {
-	int viewable = 0;
-
-	for ( ; ; winPtr = winPtr->parentPtr) {
-	    if ((winPtr == NULL) || !(winPtr->flags & TK_MAPPED)) {
-		break;
-	    }
-	    if (winPtr->flags & TK_TOP_HIERARCHY) {
-		viewable = 1;
-		break;
-	    }
-	}
-
+	int viewable = GetWindowVisibility(winPtr);
 	Tcl_SetObjResult(interp, Tcl_NewBooleanObj(viewable));
 	break;
     }
@@ -1817,7 +1806,6 @@ Tk_WinfoObjCmd(
     return TCL_OK;
 }
 
-
 /*
  *----------------------------------------------------------------------
  *
@@ -1911,6 +1899,43 @@ TkDeadAppObjCmd(
 	    "can't invoke \"%s\" command: application has been destroyed",
 	    Tcl_GetString(objv[0])));
     return TCL_ERROR;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * GetWindowVisibility --
+ *
+ *	Looks at the provided window and all its parents to determine
+ *	if they are "viewable".
+ *
+ * Results:
+ *	Returns a boolean value indicating if the window and all its
+ *	parents are mapped.
+ *
+ * Side effects:
+ *	None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+GetWindowVisibility(
+    TkWindow *winPtr)		/* Window for which the visibility
+				 * should be determined. */
+{
+    int viewable = 0;
+
+    for ( ; ; winPtr = winPtr->parentPtr) {
+	if ((winPtr == NULL) || !(winPtr->flags & TK_MAPPED)) {
+	    break;
+	}
+	if (winPtr->flags & TK_TOP_HIERARCHY) {
+	    viewable = 1;
+	    break;
+	}
+    }
+    return viewable;
 }
 
 /*
